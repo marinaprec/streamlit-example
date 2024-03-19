@@ -4,37 +4,45 @@ import pandas as pd
 import streamlit as st
 
 """
-# Bienvenidos a nuestro predictor de Netflix!!!
+# !!Bienvenidos a nuestro predictor de Netflix!!!
 
-Edit `/streamlit_app.py` to customize this app to your heart's desire :heart:.
-If you have any questions, checkout our [documentation](https://docs.streamlit.io) and [community
-forums](https://discuss.streamlit.io).
-
-In the meantime, below is an example of what you can do with just a few lines of code:
 """
 
-num_points = st.slider("Number of points in spiral", 1, 10000, 1100)
-num_turns = st.slider("Number of turns in spiral", 1, 300, 31)
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
 
-indices = np.linspace(0, 1, num_points)
-theta = 2 * np.pi * num_turns * indices
-radius = indices
+# Datos ficticios de películas y preferencias
+datos = {
+    'Género': ['Acción', 'Comedia', 'Drama', 'Acción', 'Comedia', 'Drama', 'Acción', 'Comedia'],
+    'Director': ['Director1', 'Director2', 'Director3', 'Director1', 'Director2', 'Director3', 'Director1', 'Director2'],
+    'Año': [2010, 2015, 2018, 2012, 2017, 2019, 2014, 2016],
+    'Duración': [120, 95, 110, 130, 100, 105, 115, 125],
+    'Gusto': ['Sí', 'No', 'Sí', 'Sí', 'No', 'Sí', 'No', 'Sí']
+}
 
-x = radius * np.cos(theta)
-y = radius * np.sin(theta)
+# Convertir los datos a un DataFrame
+df = pd.DataFrame(datos)
 
-df = pd.DataFrame({
-    "x": x,
-    "y": y,
-    "idx": indices,
-    "rand": np.random.randn(num_points),
-})
+# Codificar las variables categóricas
+df_encoded = pd.get_dummies(df, columns=['Género', 'Director'])
 
-st.altair_chart(alt.Chart(df, height=700, width=700)
-    .mark_point(filled=True)
-    .encode(
-        x=alt.X("x", axis=None),
-        y=alt.Y("y", axis=None),
-        color=alt.Color("idx", legend=None, scale=alt.Scale()),
-        size=alt.Size("rand", legend=None, scale=alt.Scale(range=[1, 150])),
-    ))
+# Dividir los datos en características (X) y variable objetivo (y)
+X = df_encoded.drop('Gusto', axis=1)
+y = df_encoded['Gusto']
+
+# Dividir los datos en conjuntos de entrenamiento y prueba
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Entrenar el modelo de Random Forest
+modelo_rf = RandomForestClassifier(n_estimators=100, random_state=42)
+modelo_rf.fit(X_train, y_train)
+
+# Hacer predicciones en el conjunto de prueba
+y_pred = modelo_rf.predict(X_test)
+
+# Calcular la precisión del modelo
+precision = accuracy_score(y_test, y_pred)
+print("Precisión del modelo:", precision)
+
